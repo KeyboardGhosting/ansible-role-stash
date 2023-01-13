@@ -1,0 +1,5 @@
+---
+- name: restart stash
+  ansible.builtin.service:
+    name: "{{ stash_daemon }}"
+    state: restarted

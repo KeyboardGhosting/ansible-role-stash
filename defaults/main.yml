@@ -1,0 +1,8 @@
+---
+stash_version: '0.18.0'
+stash_user: 'stash'
+stash_group: 'stash'
+stash_daemon: 'stash'
+stash_bin_dir: '/opt/stash'
+stash_data_dir: '/var/opt/stash'
+stash_config_dir: '/etc/opt/stash'

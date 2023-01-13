@@ -1,0 +1,24 @@
+---
+- name: Prepare
+  hosts: all
+
+  roles:
+    - name: 0x0I.systemd
+      vars:
+        unit_config:
+          - name: stash
+            state: started
+            enabled: true
+            Unit:
+              Description: Stash server
+              After: network.target
+            Service:
+              Type: simple
+              User: stash
+              Group: stash
+              WorkingDirectory: /var/opt/stash
+              ExecStart: "/opt/stash/stash -c /etc/opt/stash/config.yaml"
+              Restart: on-failure
+              RestartSec: 2s
+            Install:
+              WantedBy: multi-user.target

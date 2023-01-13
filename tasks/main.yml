@@ -1,0 +1,9 @@
+---
+- name: Install
+  ansible.builtin.include_tasks: install.yml
+
+- name: Ensure Stash is started and enabled on boot.
+  ansible.builtin.service:
+    name: "{{ stash_daemon }}"
+    state: started
+    enabled: true

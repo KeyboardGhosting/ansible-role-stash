@@ -1,0 +1,25 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+
+  tasks:
+  - name: Check if Stash is installed.
+    ansible.builtin.stat:
+      path: "/opt/stash/stash"
+  
+  - name: Verify correct version of Stash has been installed.
+    ansible.builtin.slurp:
+      src: "/opt/stash/STASH_VERSION"
+    register: version
+    changed_when: false
+    failed_when: not (version.content | b64decode) is search('0.18.0')
+  
+  - name: Check if stash.service has been started and enabled.
+    ansible.builtin.service:
+      name: stash
+      state: started
+      enabled: true
+    check_mode: true
+    register: service
+    failed_when: (service is changed) or (service is failed)      

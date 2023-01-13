@@ -1,0 +1,69 @@
+---
+- name: Ensure stash group exists.
+  ansible.builtin.group:
+    name: "{{ stash_group }}"
+    state: present
+    system: true
+
+- name: Ensure stash user exists.
+  ansible.builtin.user:
+    name: "{{ stash_user }}"
+    group: "{{ stash_group }}"
+    home: "{{ stash_data_dir }}"
+    shell: /usr/sbin/nologin
+    system: true
+
+- name: Ensure Stash bin directory exists.
+  ansible.builtin.file:
+    path: "{{ stash_bin_dir }}"
+    owner: "{{ stash_user }}"
+    group: "{{ stash_group }}"
+    state: directory
+    mode: 0755
+
+- name: Check if Stash is already installed.
+  ansible.builtin.slurp:
+    src: "{{ stash_bin_dir }}/STASH_VERSION"
+  register: __stash_version_result
+  ignore_errors: true
+  changed_when: false
+
+- name: Set stash_current_version.
+  ansible.builtin.set_fact:
+    __stash_current_version: "{{ __stash_version_result.content | b64decode }}"
+  when: __stash_version_result is succeeded
+
+- name: Install Stash.
+  ansible.builtin.get_url:
+    url: "https://github.com/stashapp/stash/releases/download/v{{ stash_version }}/stash-linux"
+    dest: "{{ stash_bin_dir }}/stash"
+    owner: "{{ stash_user }}"
+    group: "{{ stash_group }}"
+    mode: 0755
+    force: true
+  notify: restart stash
+  when: __stash_version_result is failed
+        or not __stash_current_version is search(stash_version)
+
+- name: Set current Stash version.
+  ansible.builtin.template:
+    src: STASH_VERSION.j2
+    dest: "{{ stash_bin_dir }}/STASH_VERSION"
+  when: __stash_version_result is failed
+        or not __stash_current_version is search(stash_version)
+
+- name: Ensure Stash data directory exists.
+  ansible.builtin.file:
+    path: "{{ stash_data_dir }}"
+    owner: "{{ stash_user }}"
+    group: "{{ stash_group }}"
+    state: directory
+    mode: 0700
+
+- name: Ensure Stash config directory exists.
+  ansible.builtin.file:
+    path: "{{ stash_config_dir }}"
+    owner: "{{ stash_user }}"
+    group: "{{ stash_group }}"
+    state: directory
+    mode: 0755
